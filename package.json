@@ -1,20 +1,41 @@
 {
   "name": "@meshpoint/sdk",
-  "version": "1.0.0-alpha.0",
+  "version": "1.0.0-rc.1",
   "description": "Client for the Meshpoint platform: shared project context and memory for agent teams",
+  "keywords": [
+    "meshpoint",
+    "coding-agents",
+    "memory"
+  ],
   "license": "UNLICENSED",
-  "private": true,
-  "type": "module",
-  "engines": { "node": ">=22" },
-  "exports": {
-    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" }
+  "homepage": "https://meshpoint.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/meshpoint-dev/sdk.git"
   },
-  "files": ["dist"],
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "tag": "next"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit -p .",
     "test": "vitest run",
-    "check": "npm run typecheck && npm test"
+    "check": "npm run typecheck && npm test",
+    "prepublishOnly": "npm run check && npm run build"
   },
   "devDependencies": {
     "typescript": "^5.6.0",
