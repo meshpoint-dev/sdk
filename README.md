@@ -33,6 +33,7 @@ await client.close();
 - A failed flush keeps the turns, in order, for the next attempt and reports to `onError`. After ten intervals of failure the oldest turns are dropped.
 - `recall()` is served from the edge and can be up to 60s stale at a far region. `recall({ fresh: true })` reads the origin.
 - `sessionStart()` returns recall and a presence promise that never rejects.
+- Credentials are masked before they leave the process: `capture()`, `checkpoint()` and `putItems()` run every body through `redact()`, which replaces known token shapes (AWS, GitHub, Slack, Stripe, Google, `sk-` API keys, JWTs, Meshpoint tokens), private key blocks, passwords in URLs, bearer headers and values assigned to secret-looking names with `[REDACTED:<kind>]`. Git SHAs and prose are left alone. `redact()` is exported for callers that store text elsewhere first.
 - `projectIdFromRemote()` flattens any clone URL of one repo to one id: `host--owner--repo`.
 
 ## Develop

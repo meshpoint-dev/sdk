@@ -1,4 +1,5 @@
 import type { ForkResult, ItemInput, Presence, RecallResponse, Stats, TurnInput } from "./types.js";
+import { redact } from "./redact.js";
 
 export interface ClientOptions {
   baseUrl: string;
@@ -81,9 +82,10 @@ export class MeshpointClient {
   }
 
   // Buffers a turn; nothing is sent until the interval, the size cap, flush() or close().
+  // Credentials are masked here, before the turn is buffered; see redact.ts.
   capture(turn: TurnInput): void {
     if (this.closed) throw new Error("client is closed");
-    this.buffer.push(turn);
+    this.buffer.push({ ...turn, body: redact(turn.body) });
     if (this.buffer.length >= this.flushMaxTurns) {
       void this.flush();
       return;
@@ -94,7 +96,7 @@ export class MeshpointClient {
   // Attached to the next flush; a later call before the flush replaces it.
   checkpoint(body: string): void {
     if (this.closed) throw new Error("client is closed");
-    this.pendingCheckpoint = body;
+    this.pendingCheckpoint = redact(body);
     this.armTimer();
   }
 
@@ -113,7 +115,8 @@ export class MeshpointClient {
   }
 
   putItems(items: ItemInput[]): Promise<{ count: number }> {
-    return this.request<{ count: number }>("POST", "/v1/items", { project: this.project, branch: this.branch, items });
+    const clean = items.map((i) => ({ ...i, title: redact(i.title), body: redact(i.body) }));
+    return this.request<{ count: number }>("POST", "/v1/items", { project: this.project, branch: this.branch, items: clean });
   }
 
   retract(id: string): Promise<{ found: boolean }> {
