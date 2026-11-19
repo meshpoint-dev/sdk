@@ -7,7 +7,7 @@
     "coding-agents",
     "memory"
   ],
-  "license": "UNLICENSED",
+  "license": "Apache-2.0",
   "homepage": "https://meshpoint.dev",
   "repository": {
     "type": "git",
