@@ -1,0 +1,37 @@
+# Publishes to npm through trusted publishing (OpenID Connect): no npm token, no one-time code.
+# npmjs.com → package → Settings → Trusted publishing must name this repository and this file.
+# A tag v<version> publishes that version; a prerelease version goes to the "next" dist-tag,
+# anything else to "latest". Run by hand from the Actions tab for a tag that already exists.
+name: Publish
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+      # Trusted publishing needs npm 11.5.1 or later; Node 22 bundles npm 10.
+      - run: npm install -g npm@latest
+      - run: npm ci
+      - name: Publish
+        run: |
+          version=$(node -p "require('./package.json').version")
+          if [[ "$GITHUB_REF_TYPE" == "tag" && "$GITHUB_REF_NAME" != "v$version" ]]; then
+            echo "tag $GITHUB_REF_NAME does not match package version $version" >&2
+            exit 1
+          fi
+          tag=latest
+          [[ "$version" == *-* ]] && tag=next
+          npm publish --tag "$tag"
