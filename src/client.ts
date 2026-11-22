@@ -6,6 +6,8 @@ export interface ClientOptions {
   token: string;
   project: string;
   branch: string;
+  // The harness session these turns belong to; sent with every capture so the console can show runs.
+  session?: string;
   // Buffered turns are sent this often and on close(). Default 60s, matching the platform's own flush.
   flushIntervalMs?: number;
   // A buffer this long is sent at once instead of waiting for the interval.
@@ -34,6 +36,7 @@ export class MeshpointClient {
   private readonly token: string;
   readonly project: string;
   readonly branch: string;
+  private readonly session: string | undefined;
   private readonly flushIntervalMs: number;
   private readonly flushMaxTurns: number;
   private readonly fetchImpl: typeof fetch;
@@ -50,6 +53,7 @@ export class MeshpointClient {
     this.token = opts.token;
     this.project = opts.project;
     this.branch = opts.branch;
+    this.session = opts.session;
     this.flushIntervalMs = opts.flushIntervalMs ?? DEFAULT_FLUSH_INTERVAL_MS;
     this.flushMaxTurns = opts.flushMaxTurns ?? DEFAULT_FLUSH_MAX_TURNS;
     this.fetchImpl = opts.fetch ?? globalThis.fetch;
@@ -189,6 +193,7 @@ export class MeshpointClient {
         branch: this.branch,
         turns,
         ...(checkpoint === undefined ? {} : { checkpoint }),
+        ...(this.session === undefined ? {} : { session: this.session }),
       });
     } catch (err) {
       this.buffer = [...turns, ...this.buffer];

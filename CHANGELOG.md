@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.0
+
+`ClientOptions.session`: the harness session id, sent with every capture so the platform groups turns into sessions exactly.
+
 ## 1.2.0
 
 Items carry `key`, `superseded_by` and `confirmed_at`; `ItemInput` takes `key` and `supersedes`; `state` gains `superseded`. `putItems()` answers `{count, superseded}`. `isExpired()`, `lastSeenAt()`, `DECAY_KINDS`, `DECAY_MS` exported: status and todo items unconfirmed for 30 days leave recall.

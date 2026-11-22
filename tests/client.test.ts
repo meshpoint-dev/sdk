@@ -67,6 +67,17 @@ describe("MeshpointClient", () => {
     expect(calls).toHaveLength(1);
   });
 
+  it("sends the session id with each capture when given", async () => {
+    const { fn, calls } = fakeFetch();
+    const c = client(fn, { session: "sess-1" });
+    c.capture({ body: "hi" });
+    await c.flush();
+    expect(calls[0]?.body).toMatchObject({ session: "sess-1", turns: [{ body: "hi" }] });
+    const plain = client(fakeFetch().fn);
+    plain.capture({ body: "hi" });
+    await plain.flush();
+  });
+
   it("flushes at once when the buffer reaches the size cap", async () => {
     const { fn, calls } = fakeFetch();
     const c = client(fn, { flushMaxTurns: 3 });
