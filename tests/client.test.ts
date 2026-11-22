@@ -121,6 +121,32 @@ describe("MeshpointClient", () => {
     expect(calls.map((c) => c.url.split("?")[0])).toEqual(["https://api.test/v1/presence", "https://api.test/v1/recall"]);
   });
 
+  it("presence takes all branches on request, context asks about one file, verify and confirm hit their routes", async () => {
+    const { fn, calls } = fakeFetch((call) => {
+      if (call.url.includes("/v1/presence")) return { status: 200, body: { presence: [{ agent: "a" }] } };
+      if (call.url.includes("/v1/context")) return { status: 200, body: { items: [], presence: [] } };
+      if (call.url.endsWith("/v1/items/verify")) return { status: 202, body: { applied: 2 } };
+      return { status: 202, body: { found: true } };
+    });
+    const c = client(fn);
+    await c.presence();
+    await c.presence({ all: true });
+    await c.context("src/auth.ts");
+    expect(await c.verify([{ id: "i1", result: "verified" }, { id: "i2", result: "stale" }])).toEqual({ applied: 2 });
+    expect(await c.confirm("i1")).toEqual({ found: true });
+    expect(await c.restore("i1")).toEqual({ found: true });
+    expect(calls.map((x) => x.url.replace("https://api.test", ""))).toEqual([
+      "/v1/presence?project=github.com--acme--web&branch=master",
+      "/v1/presence?project=github.com--acme--web&all=1",
+      "/v1/context?project=github.com--acme--web&branch=master&path=src%2Fauth.ts",
+      "/v1/items/verify",
+      "/v1/items/confirm",
+      "/v1/items/restore",
+    ]);
+    expect(calls[3]?.body).toEqual({ project: "github.com--acme--web", sightings: [{ id: "i1", result: "verified" }, { id: "i2", result: "stale" }] });
+    expect(calls[4]?.body).toEqual({ project: "github.com--acme--web", id: "i1" });
+  });
+
   it("retract treats 404 as not found instead of throwing", async () => {
     const { fn } = fakeFetch(() => ({ status: 404, body: { found: false } }));
     expect(await client(fn).retract("nope")).toEqual({ found: false });

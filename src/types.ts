@@ -4,6 +4,11 @@ export type Kind = "fact" | "decision" | "gotcha" | "convention" | "status" | "t
 
 export const KINDS: readonly Kind[] = ["fact", "decision", "gotcha", "convention", "status", "todo"];
 
+// Verification state: `ok` is unverified or verified, `suspect` means a referenced path changed after
+// the item was written, `stale` means a referenced path is gone, `dropped` means enough users saw it
+// stale that recall skips it (it stays in storage and in the console).
+export type ItemState = "ok" | "suspect" | "stale" | "dropped";
+
 export interface Item {
   id: string;
   branch: string;
@@ -14,6 +19,15 @@ export interface Item {
   confirmations: number;
   retracted: number;
   provenance: string;
+  // Repo-relative paths named in the item and present when it was written.
+  refs: string[];
+  // Repo-relative paths edited on the branch around the time the item was written.
+  paths: string[];
+  // HEAD when the item was written; empty when unknown.
+  commit_sha: string;
+  state: ItemState;
+  verified_at: number;
+  stale_count: number;
 }
 
 export interface ItemInput {
@@ -24,6 +38,24 @@ export interface ItemInput {
   created_at?: number;
   confirmations?: number;
   provenance?: string;
+  refs?: string[];
+  paths?: string[];
+  commit_sha?: string;
+}
+
+export type SightingResult = "verified" | "suspect" | "stale";
+
+// One checkout's verdict on one item: every ref present and untouched since the item (verified),
+// present but changed since (suspect), or missing (stale).
+export interface Sighting {
+  id: string;
+  result: SightingResult;
+}
+
+// Edit-time context for one file: items on the branch that name it, and others on it right now.
+export interface ContextResponse {
+  items: Item[];
+  presence: Presence[];
 }
 
 export interface Checkpoint {

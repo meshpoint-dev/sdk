@@ -1,4 +1,4 @@
-import type { ForkResult, ItemInput, Presence, RecallResponse, Stats, TurnInput } from "./types.js";
+import type { ContextResponse, ForkResult, ItemInput, Presence, RecallResponse, Sighting, Stats, TurnInput } from "./types.js";
 import { redact } from "./redact.js";
 
 export interface ClientOptions {
@@ -64,10 +64,19 @@ export class MeshpointClient {
     return this.request<RecallResponse>("GET", `/v1/recall?${q}`);
   }
 
-  async presence(): Promise<Presence[]> {
-    const q = new URLSearchParams({ project: this.project, branch: this.branch });
+  // Live agents on this branch, or on every branch of the project with `all`.
+  async presence(opts: { all?: boolean } = {}): Promise<Presence[]> {
+    const q = new URLSearchParams({ project: this.project });
+    if (opts.all) q.set("all", "1");
+    else q.set("branch", this.branch);
     const out = await this.request<{ presence: Presence[] }>("GET", `/v1/presence?${q}`);
     return out.presence;
+  }
+
+  // What to know before editing one repo-relative file: items naming it and others on it now.
+  context(filePath: string): Promise<ContextResponse> {
+    const q = new URLSearchParams({ project: this.project, branch: this.branch, path: filePath });
+    return this.request<ContextResponse>("GET", `/v1/context?${q}`);
   }
 
   // Recall is awaited; presence comes from the origin and is fetched in the background so a far
@@ -121,6 +130,20 @@ export class MeshpointClient {
 
   retract(id: string): Promise<{ found: boolean }> {
     return this.request<{ found: boolean }>("POST", "/v1/retract", { project: this.project, id }, [202, 404]);
+  }
+
+  // Verification results from this checkout; the platform adjusts confirmations and state.
+  verify(sightings: Sighting[]): Promise<{ applied: number }> {
+    return this.request<{ applied: number }>("POST", "/v1/items/verify", { project: this.project, sightings });
+  }
+
+  confirm(id: string): Promise<{ found: boolean }> {
+    return this.request<{ found: boolean }>("POST", "/v1/items/confirm", { project: this.project, id }, [202, 404]);
+  }
+
+  // Admin action: clears a stale or dropped state so the item returns to recall.
+  restore(id: string): Promise<{ found: boolean }> {
+    return this.request<{ found: boolean }>("POST", "/v1/items/restore", { project: this.project, id }, [202, 404]);
   }
 
   fork(target: string, mode: "items" | "full" = "items"): Promise<ForkResult> {
