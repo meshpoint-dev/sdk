@@ -123,9 +123,9 @@ export class MeshpointClient {
     return this.request<unknown>("POST", "/v1/presence", { project: this.project, branch: this.branch, paths }).then(() => undefined);
   }
 
-  putItems(items: ItemInput[]): Promise<{ count: number }> {
+  putItems(items: ItemInput[]): Promise<{ count: number; superseded: number }> {
     const clean = items.map((i) => ({ ...i, title: redact(i.title), body: redact(i.body) }));
-    return this.request<{ count: number }>("POST", "/v1/items", { project: this.project, branch: this.branch, items: clean });
+    return this.request<{ count: number; superseded: number }>("POST", "/v1/items", { project: this.project, branch: this.branch, items: clean });
   }
 
   retract(id: string): Promise<{ found: boolean }> {

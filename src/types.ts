@@ -7,7 +7,19 @@ export const KINDS: readonly Kind[] = ["fact", "decision", "gotcha", "convention
 // Verification state: `ok` is unverified or verified, `suspect` means a referenced path changed after
 // the item was written, `stale` means a referenced path is gone, `dropped` means enough users saw it
 // stale that recall skips it (it stays in storage and in the console).
-export type ItemState = "ok" | "suspect" | "stale" | "dropped";
+export type ItemState = "ok" | "suspect" | "stale" | "dropped" | "superseded";
+
+// Session-level kinds leave recall once nobody has confirmed them for this long. Derived, not stored.
+export const DECAY_KINDS: readonly Kind[] = ["status", "todo"];
+export const DECAY_MS = 30 * 86_400_000;
+
+export function lastSeenAt(item: Pick<Item, "created_at" | "verified_at" | "confirmed_at">): number {
+  return Math.max(item.created_at, item.verified_at, item.confirmed_at);
+}
+
+export function isExpired(item: Pick<Item, "kind" | "created_at" | "verified_at" | "confirmed_at">, now: number): boolean {
+  return DECAY_KINDS.includes(item.kind) && now - lastSeenAt(item) > DECAY_MS;
+}
 
 export interface Item {
   id: string;
@@ -28,6 +40,12 @@ export interface Item {
   state: ItemState;
   verified_at: number;
   stale_count: number;
+  // Optional slot per branch and kind; a new item with the same key supersedes the old one.
+  key: string;
+  // Id of the item that replaced this one, when state is superseded.
+  superseded_by: string;
+  // Last explicit confirmation; verified sightings update verified_at.
+  confirmed_at: number;
 }
 
 export interface ItemInput {
@@ -41,6 +59,9 @@ export interface ItemInput {
   refs?: string[];
   paths?: string[];
   commit_sha?: string;
+  key?: string;
+  // Full ids of items this one replaces; the platform marks them superseded.
+  supersedes?: string[];
 }
 
 export type SightingResult = "verified" | "suspect" | "stale";
