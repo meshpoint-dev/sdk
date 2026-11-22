@@ -1,7 +1,7 @@
 {
   "name": "@meshpoint/sdk",
   "version": "1.0.0",
-  "description": "Client for the Meshpoint platform: shared project context and memory for agent teams",
+  "description": "Meshpoint client: shared agent memory for developer teams",
   "keywords": [
     "meshpoint",
     "coding-agents",

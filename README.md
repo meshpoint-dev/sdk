@@ -1,6 +1,6 @@
 # @meshpoint/sdk
 
-TypeScript client for the Meshpoint platform (`meshpoint-dev/platform`). Fetch-based, no Node-only dependencies, so it runs in Node 22+, Bun, Deno and Workers.
+TypeScript client for Meshpoint, shared agent memory for developer teams (`meshpoint-dev/platform`). Fetch-based, no Node-only dependencies, so it runs in Node 22+, Bun, Deno and Workers.
 
 ```ts
 import { MeshpointClient, projectIdFromRemote } from "@meshpoint/sdk";
