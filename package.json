@@ -1,13 +1,13 @@
 {
   "name": "@meshpoint/sdk",
-  "version": "1.0.0-rc.3",
+  "version": "1.0.0",
   "description": "Client for the Meshpoint platform: shared project context and memory for agent teams",
   "keywords": [
     "meshpoint",
     "coding-agents",
     "memory"
   ],
-  "license": "Apache-2.0",
+  "license": "MIT",
   "homepage": "https://meshpoint.dev",
   "repository": {
     "type": "git",
