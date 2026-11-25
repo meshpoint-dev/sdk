@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.0
+
+Distillation prompts and parsers shared with the CLI and the platform: `DISTILL_SYSTEM`, `DISTILL_RULES`, `renderTranscript()`, `sessionPrompt()`, `consolidatePrompt()`, `parseProposed()`, `parseProposedWith()`, `parseMerged()`, `jsonBlock()`, with the `ProposedItem`, `MergedItem`, `TranscriptLine`, `SessionMeta` and `LiveItem` types. Pure functions over text; `meshpoint import sessions` and the console's Distill action send the same prompt.
+
 ## 1.3.0
 
 `ClientOptions.session`: the harness session id, sent with every capture so the platform groups turns into sessions exactly.
